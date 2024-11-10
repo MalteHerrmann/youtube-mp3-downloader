@@ -30,6 +30,6 @@ func Entrypoint(url, outputDir string) error {
   println("downloading ", urlToDownload.String())
   println(" -> into ", targetDir)
 
-  return nil
+  return youtube.DownloadWithYTDLP(urlToDownload, targetDir)
 }
 
