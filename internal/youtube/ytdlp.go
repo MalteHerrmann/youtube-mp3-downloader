@@ -2,15 +2,12 @@ package youtube
 
 import (
 	"fmt"
-  "path/filepath"
   "os/exec"
 )
 
 const DownloaderBinary = "yt-dlp"
 
-func DownloadWithYTDLP(videoData *VideoData, exportDir string) error {
-  exportFile := filepath.Join(exportDir, getFilename(videoData.Info))
-
+func DownloadWithYTDLP(videoData *VideoData, exportFile string) error {
 	err := exec.Command(
 		DownloaderBinary,
 		"-x",
@@ -27,7 +24,3 @@ func DownloadWithYTDLP(videoData *VideoData, exportDir string) error {
 	return nil
 }
 
-func getFilename(vi *VideoInfo) string {
-  // TODO: check if the video title already contains the expected artist format
-  return fmt.Sprintf("%s - %s.mp3", vi.Author, vi.Title)
-}
