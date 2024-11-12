@@ -2,28 +2,32 @@ package youtube
 
 import (
 	"fmt"
-	"net/url"
-	"os/exec"
+  "path/filepath"
+  "os/exec"
 )
 
 const DownloaderBinary = "yt-dlp"
 
-func DownloadWithYTDLP(videoURL *url.URL, exportDir string) error {
-	// TODO: read video metadata and derive title, and from that track and artist, potentially also label with regex [0-9A-Z]+[0-9]+
-	// TODO: use youtube Golang package e.g. to sanitize the filename and potentially download too: https://github.com/kkdai/youtube/blob/master/downloader/file_utils.go#L51
+func DownloadWithYTDLP(videoData *VideoData, exportDir string) error {
+  exportFile := filepath.Join(exportDir, getFilename(videoData.Info))
+
 	err := exec.Command(
 		DownloaderBinary,
 		"-x",
 		"--audio-format",
 		"mp3",
-		videoURL.String(),
+		videoData.URL.ParsedURL.String(),
 		"--output",
-		// TODO: this should not only be the dir but rather the full file name derived from the title
-		exportDir,
+		exportFile,
 	).Run()
 	if err != nil {
 		return fmt.Errorf("failed to download with %s: %w", DownloaderBinary, err)
 	}
 
 	return nil
+}
+
+func getFilename(vi *VideoInfo) string {
+  // TODO: check if the video title already contains the expected artist format
+  return fmt.Sprintf("%s - %s.mp3", vi.Author, vi.Title)
 }

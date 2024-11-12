@@ -19,17 +19,17 @@ func Entrypoint(url, outputDir string) error {
     return err
   }
 
-  urlToDownload, err := youtube.ValidateURL(url)
-  if err != nil {
-    return fmt.Errorf("url failed validation: %w", err)
-  }
-
   monthDir := fs.GetCurrentMonthDir()
   targetDir := filepath.Join(outputDir, monthDir)
 
-  println("downloading ", urlToDownload.String())
+  videoData, err := youtube.GetVideoData(url)
+  if err != nil {
+    return fmt.Errorf("failed to get video data: %w", err)
+  }
+
+  println("downloading ", videoData.URL.ParsedURL.String())
   println(" -> into ", targetDir)
 
-  return youtube.DownloadWithYTDLP(urlToDownload, targetDir)
+  return youtube.DownloadWithYTDLP(videoData, targetDir)
 }
 
