@@ -1,45 +1,33 @@
 package youtube
 
 import (
-  "fmt"
-  "net/url"
-  "regexp"
+	"fmt"
+	"net/url"
+	"regexp"
 )
 
 type youtubeURL struct {
-  ParsedURL *url.URL
-  VideoID string
+	ParsedURL *url.URL
+	VideoID   string
 }
 
+// parseYouTubeURL parses the given raw YouTube url and returns a
+// youtubeURL struct, which contains a cleaned URL and the video ID.
 func parseYouTubeURL(rawURL string) (youtubeURL, error) {
-  parsedURL, err := url.Parse(rawURL)
-  if err != nil {
-    return youtubeURL{}, err
-  }
-  
-  videoID, err := getVideoIDFromURL(parsedURL)
-  if err != nil {
-    return youtubeURL{}, err
-  }
+	videoPattern := regexp.MustCompile(`(https://www\.youtube\.com/watch\?v=)([a-zA-Z0-9\-_]+)(&list.*){0,1}$`)
+	submatches := videoPattern.FindStringSubmatch(rawURL)
+	if len(submatches) < 3 {
+		return youtubeURL{}, fmt.Errorf("expected youtube watch link; got: %s", rawURL)
+	}
 
-  return youtubeURL{
-    ParsedURL: parsedURL,
-    VideoID: videoID,
-  }, nil
+	videoID := submatches[2]
+	cleanURL, err := url.Parse(submatches[1] + videoID)
+	if err != nil {
+		return youtubeURL{}, err
+	}
+
+	return youtubeURL{
+		ParsedURL: cleanURL,
+		VideoID:   videoID,
+	}, nil
 }
-
-// getVideoIDFromURL returns the stripped video ID from the given
-// YouTube url.
-//
-// NOTE: the URL was already checked to be a valid video link.
-func getVideoIDFromURL(videoURL *url.URL) (string, error) {
-  videoPattern := regexp.MustCompile(`https://www\.youtube\.com/watch\?v=([a-zA-Z0-9]+)`)
-  subMatches := videoPattern.FindStringSubmatch(videoURL.String())
-
-  if len(subMatches) != 2 {
-    return "", fmt.Errorf("failed to match video link; expected youtube watch link; got: %s", videoURL.String())
-  }
-
-  return subMatches[1], nil
-}
-
