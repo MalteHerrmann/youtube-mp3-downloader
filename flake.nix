@@ -12,7 +12,11 @@
         pkgs = nixpkgs.legacyPackages.${system};
       in
       {
-        packages.default = pkgs.yt-dlp;
+        packages.default = [
+          pkgs.cobra-cli
+          pkgs.go
+          pkgs.yt-dlp
+        ];
 
         apps.default = {
           type = "app";
@@ -20,7 +24,11 @@
         };
 
         devShell = pkgs.mkShell {
-          buildInputs = [ pkgs.yt-dlp ];
+          buildInputs = [
+            pkgs.cobra-cli
+            pkgs.go
+            pkgs.yt-dlp
+          ];
         };
       });
 }
