@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
-  "path/filepath"
-  "regexp"
-  "strings"
+	"path/filepath"
+	"regexp"
+	"strings"
 
-  "github.com/manifoldco/promptui"
+	"github.com/manifoldco/promptui"
 
 	envinfo "github.com/MalteHerrmann/yt-downloader/internal/env"
 	"github.com/MalteHerrmann/yt-downloader/internal/fs"
@@ -15,64 +15,69 @@ import (
 
 // Entrypoint is the main execution function for the bare command.
 func Entrypoint(url, outputDir string) error {
-  if err := envinfo.CheckEnvironment(); err != nil {
-    return fmt.Errorf("failed to validate environment: %w", err)
-  }
-  
-  if err := fs.CheckDirExists(outputDir); err != nil {
-    return err
-  }
+	if err := envinfo.CheckEnvironment(); err != nil {
+		return fmt.Errorf("failed to validate environment: %w", err)
+	}
 
-  videoData, err := youtube.GetVideoData(url)
-  if err != nil {
-    return fmt.Errorf("failed to get video data: %w", err)
-  }
+	if err := fs.CheckDirExists(outputDir); err != nil {
+		return err
+	}
 
-  println("got video title: ", videoData.Info.Title)
-  println("got video uploader: ", videoData.Info.Author)
+	videoData, err := youtube.GetVideoData(url)
+	if err != nil {
+		return fmt.Errorf("failed to get video data: %w", err)
+	}
 
-  monthDir := fs.GetCurrentMonthDir()
-  targetDir := filepath.Join(outputDir, monthDir)
-  fileName, err := getFilename(videoData.Info)
-  if err != nil {
-    return fmt.Errorf("failed to get filename: %w", err)
-  }
+	println("got video title: ", videoData.Info.Title)
+	println("got video uploader: ", videoData.Info.Author)
 
-  exportFile := filepath.Join(targetDir, fileName)
+	monthDir := fs.GetCurrentMonthDir()
+	targetDir := filepath.Join(outputDir, monthDir)
+	fileName, err := getFilename(videoData.Info)
+	if err != nil {
+		return fmt.Errorf("failed to get filename: %w", err)
+	}
 
-  println("downloading ", videoData.URL.ParsedURL.String())
-  println(" -> into ", exportFile)
+	exportFile := filepath.Join(targetDir, fileName)
 
-  return youtube.DownloadWithYTDLP(videoData, exportFile)
+	println("downloading ", videoData.URL.ParsedURL.String())
+	println(" -> into ", exportFile)
+
+	return youtube.DownloadWithYTDLP(videoData, exportFile)
 }
 
 // getFilename cleans the video info and prompts the user for the
 // artist and title to be used in the filename.
 func getFilename(vi *youtube.VideoInfo) (string, error) {
-  // TODO: check if the video title already contains the expected artist format
-  strippedAuthor := regexp.MustCompile(`-\s*[tT]opic`).ReplaceAllString(vi.Author, "")
+	artist := regexp.MustCompile(`-\s*[tT]opic`).ReplaceAllString(vi.Author, "")
+	title := vi.Title
 
-  artistPrompt := promptui.Prompt{
-    Label: "Artist",
-    Default: strings.TrimSpace(strippedAuthor),
-  }
+	titleMatch := regexp.MustCompile(`([0-9a-zA-Z\s]+)\s*-\s*([0-9a-zA-Z\s]+)`).FindStringSubmatch(vi.Title)
+	if len(titleMatch) == 3 {
+		artist = titleMatch[1]
+		title = titleMatch[2]
+	}
 
-  artist, err := artistPrompt.Run()
-  if err != nil {
-    return "", err
-  }
+	artistPrompt := promptui.Prompt{
+		Label:   "Artist",
+		Default: strings.TrimSpace(artist),
+	}
 
-  titlePrompt := promptui.Prompt{
-    Label: "Title",
-    Default: vi.Title,
-  }
+	var err error
+	artist, err = artistPrompt.Run()
+	if err != nil {
+		return "", err
+	}
 
-  title, err := titlePrompt.Run()
-  if err != nil {
-    return "", err
-  }
+	titlePrompt := promptui.Prompt{
+		Label:   "Title",
+		Default: title,
+	}
 
+	title, err = titlePrompt.Run()
+	if err != nil {
+		return "", err
+	}
 
-  return fmt.Sprintf("%s - %s.mp3", artist, title), nil
+	return fmt.Sprintf("%s - %s.mp3", artist, title), nil
 }
-
