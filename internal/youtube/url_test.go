@@ -1,8 +1,9 @@
 package youtube
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseYoutubeURL(t *testing.T) {
@@ -21,21 +22,12 @@ func TestParseYoutubeURL(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			parsedURL, err := parseYouTubeURL(tc.url)
 
-			switch {
-			case tc.expError == "" && err != nil:
-				t.Fatalf("expected no error; got: %s", err)
-			case tc.expError == "" && err == nil && tc.expVideoID == parsedURL.VideoID:
-				// success case
-			case tc.expError == "" && err == nil && tc.expVideoID != parsedURL.VideoID:
-				t.Fatalf("expected different video id; expected: %s; got: %s", tc.expVideoID, parsedURL.VideoID)
-			case tc.expError != "" && err == nil:
-				t.Fatal("expected error; got: nil")
-			case tc.expError != "" && !strings.Contains(err.Error(), tc.expError):
-				t.Fatalf("expected different error; expected: %q; got: %q", tc.expError, err.Error())
-			case tc.expError != "" && strings.Contains(err.Error(), tc.expError):
-				// success case
-			default:
-				t.Fatalf("unexpected combination; err: %s", err)
+			if tc.expError == "" {
+				assert.NoError(t, err, "expected no error; got: %s", err)
+				assert.Equal(t, tc.expVideoID, parsedURL.VideoID, "expected video id: %s; got: %s", tc.expVideoID, parsedURL.VideoID)
+			} else {
+				assert.Error(t, err, "expected error; got: nil")
+				assert.Contains(t, err.Error(), tc.expError, "expected error: %s; got: %s", tc.expError, err)
 			}
 		})
 	}
