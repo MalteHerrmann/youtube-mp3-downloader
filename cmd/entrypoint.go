@@ -46,6 +46,15 @@ func Entrypoint(url, outputDir string) error {
 	return youtube.DownloadWithYTDLP(videoData, exportFile)
 }
 
+// getVideoLink asks the user for the video link
+func getVideoLink() (string, error) {
+	videoLinkPrompt := promptui.Prompt{
+		Label: "Video Link",
+	}
+
+	return videoLinkPrompt.Run()
+}
+
 // getFilename cleans the video info and prompts the user for the
 // artist and title to be used in the filename.
 func getFilename(vi *youtube.VideoInfo) (string, error) {
