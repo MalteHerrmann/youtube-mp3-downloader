@@ -2,13 +2,13 @@ package youtube
 
 import (
 	"fmt"
-  "os/exec"
+	"os/exec"
 )
 
 const DownloaderBinary = "yt-dlp"
 
 func DownloadWithYTDLP(videoData *VideoData, exportFile string) error {
-	err := exec.Command(
+	_, err := exec.Command(
 		DownloaderBinary,
 		"-x",
 		"--audio-format",
@@ -16,11 +16,18 @@ func DownloadWithYTDLP(videoData *VideoData, exportFile string) error {
 		videoData.URL.ParsedURL.String(),
 		"--output",
 		exportFile,
-	).Run()
+	).Output()
 	if err != nil {
+		exErr, ok := err.(*exec.ExitError)
+		if ok {
+			// NOTE: since exErr.Error() only returns the status code instead of the contents of Stderr,
+			// we are returning exErr.StdErr here
+			return fmt.Errorf("failed to download with %s: %s", DownloaderBinary, string(exErr.Stderr))
+		}
+
 		return fmt.Errorf("failed to download with %s: %w", DownloaderBinary, err)
+
 	}
 
 	return nil
 }
-
