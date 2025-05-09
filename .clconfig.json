@@ -1,0 +1,13 @@
+{
+  "categories": [],
+  "change_types": {
+    "Bug Fixes": "fix",
+    "Features": "feat",
+    "Improvements": "imp"
+  },
+  "commit_message": "add changelog entry",
+  "changelog_path": "CHANGELOG.md",
+  "expected_spellings": {},
+  "legacy_version": null,
+  "target_repo": "https://github.com/MalteHerrmann/youtube-mp3-downloader"
+}
