@@ -19,6 +19,12 @@ which has `yt-dlp` installed.
 To download a given track in MP3 format, run:
 
 ```bash
-yt-dlp -x --audio-format mp3 [URL]
+(nix)$ yt-dlp -x --audio-format mp3 [URL]
 ```
 
+There is a Go program available, that has an interactive CLI to use the mp3 download functionality.
+It includes cleaning the filename, pre-filling artist and title, etc. and storing the downloaded tracks in a subfolder according to the current month.
+
+```bash
+(nix)$ go run . $URL
+```
